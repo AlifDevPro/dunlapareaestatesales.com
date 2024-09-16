@@ -20,8 +20,23 @@ export default function ContactForm() {
         message: '',
         agreeToPolicy: false,
     });
+    const [loading, setLoading]=useState(false)
+
+    const handleValidate = () => {
+      const {firstName, email, phone, address, message, agreeToPolicy} = formData
+
+      if (!firstName || !email || !phone || !agreeToPolicy) {
+        if (!firstName) toast.error("First Name is required.");
+        if (!email) toast.error("Email is required.");
+        if (!phone) toast.error("Phone number is required.");
+        if (!agreeToPolicy) toast.error("You must agree to the policy.");
+        return false;
+    }
+    return true;
+    }
 
     const handleChange = (e: any) => {
+        setLoading(false)
         const { name, value, type, checked } = e.target;
         setFormData({
             ...formData,
@@ -30,8 +45,11 @@ export default function ContactForm() {
     };
 
     const handleSubmit = async () => {
+        if(!handleValidate()) return;
+        
         try {
-            const response = await api.post(`/contact/`, formData);
+            setLoading(true)
+            const response = await api.post(`/contact`, formData);
             toast.success(response.data);
             setFormData({
                 firstName: '',
@@ -42,7 +60,9 @@ export default function ContactForm() {
                 message: '',
                 agreeToPolicy: false,
             })
+            setLoading(false)
         } catch (error) {
+            setLoading(false)
             if (axios.isAxiosError(error) && error.response) {
                 toast.error(error.response.data.message || 'An error occurred. Please try again.');
             } else {
@@ -116,6 +136,7 @@ export default function ContactForm() {
                 varient="primary"
                 link='/#contact'
                 onclick={handleSubmit}
+                loading={loading}
                 style={{ backgroundColor: "black", color: "white", width: "100%", display: "flex", alignItems: "center", justifyContent: "center", marginTop: "1rem" }}
             />
         </form>
